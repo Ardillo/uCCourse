@@ -6,15 +6,65 @@
 /* door:           Jeroen van Prooijen                                        */
 /* stud.nr:        1595111                                                    */
 /* Opleiding:      Security Technology (2013-2014)                            */
+/*                                                                            */  
+/* Search through a file for string:                                          */  
+/*   ./zoek "string" file.txt                                                 */  
+/* output will be:                                                            */  
+/*   [line number][column number] line                                        */  
 /* ========================================================================== */
 
-#include <stdio.h> //printf, fopen, fclose
-//TODO nog te gebruiken (programma eis)
-#include <string.h> 
+#include <stdio.h>  /* printf, fopen, fclose, fgets */
+#include <string.h> /* strlen, strcpy, strstr */
 
-//TODO programma eis
+// (un)comment line below for debug output
 #define DEBUG
 
+#define MAXLINE 200 /* maximum chars in line */
+
+int lineCount = 0;
+
+///////////////////////////////////////////////////////////////////////////////
+// reads a line from file and increments counter
+// returns -1 if end of file is reached.
+int readLine(char line[], int limit, FILE *file)
+{
+  if(fgets(line, limit, file) == NULL)
+    return -1;
+  else
+    ++lineCount;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// calculates column location in string
+int calcColumn(char *pstring, char *pchar)
+{
+  return 1 + (pchar - pstring)/sizeof(char);
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// searches for a substring in a string
+// if found, calculate and return column location in string
+int zoek(char line[], char zoekWoord[])
+{
+  char *phit;
+  
+  if((phit = strstr(line, zoekWoord)) != NULL)    
+    return calcColumn(line, phit);
+  
+  return -1;
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// prints formatted line, with ANSI escape characters for colored printing
+// output: 
+//   [line][column] string
+void printLine(int line, int column, char string[])
+{
+  printf("\033[32m[%3i][%3i] %s\033[0m", line, column, string);
+}
+
+/////////////////////////////////////////////////////////////////////////////
+// main loop
 int main(int argc, char *argv[])
 {
   char *usage = 
@@ -37,15 +87,16 @@ int main(int argc, char *argv[])
     for (i=0; i<argc; i++)
     {
       size = strlen(argv[i]);
-      printf("[%d] %s length=%i\n", i, argv[i], size);
+      printf("[%d] %15s length=%i\n", i, argv[i], size);
     }
   #endif
   
-  char zoekString[strlen(argv[1])]; 
-  strcpy(zoekString, argv[1]);
+  char zoekWoord[strlen(argv[1])]; 
+  strcpy(zoekWoord, argv[1]);
+  char lineBuffer[MAXLINE];
   
-  char zoekBuffer[200];
   
+  // Open File
   FILE *fp;
   fp = fopen(argv[2], "r");
  
@@ -55,12 +106,18 @@ int main(int argc, char *argv[])
     return 1;
   }
   
-  // readline and return line included '\n' character
-  while ( fgets(zoekBuffer, 200, fp) != NULL)
+
+  while(readLine(lineBuffer, MAXLINE, fp) != -1)
   {
-    printf(zoekBuffer);
+    #ifdef DEBUG
+    printf("[%3i] %s", lineCount, lineBuffer);
+    #endif
+    
+    int column;
+    if( (column = zoek(lineBuffer, zoekWoord)) != -1)
+      printLine(lineCount, column, lineBuffer);
   }
-  
+ 
   fclose(fp);
   return 1;
 }
