@@ -22,7 +22,7 @@
 #define MAXLINE 200 /* maximum chars in line */
 
 int lineCount = 0;
-
+  
 ///////////////////////////////////////////////////////////////////////////////
 // reads a line from file and increments counter
 // returns -1 if end of file is reached.
@@ -42,26 +42,37 @@ int calcColumn(char *pStartofString, char *pLocationWordFound)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
-// searches for a substring in a string
-// if found, calculate and return column location in string
-int zoek(char *line, char zoekWoord[])
+// prints formatted line, with ANSI escape characters for colored printing
+// output: 
+//   [line][column] string
+void printLine(int lineNumber, int column, char *string)
 {
-  char *phit;
+  printf("\033[32m[%3i][%3i] %s\033[0m", lineNumber, column, string);
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// searches for a substring in a string
+// if found, calculate the column location in string, print the line. and 
+// replace the found chars with '_' to find an possible second word in the 
+// same line.
+int zoek(char *line, char *zoekWoord, int *lengthZoekWoord)
+{
+  char *phit, zoekBuffer[strlen(line)];
+  int column;
   
-  if((phit = strstr(line, zoekWoord)) != NULL)    
-    return calcColumn(line, phit);
+  strncpy(zoekBuffer, line, sizeof(zoekBuffer) ); // maak copy van line in buffer
+
+  while((phit = strstr(zoekBuffer, zoekWoord)) != NULL)
+  {
+    column = calcColumn(zoekBuffer, phit);
+    printLine(lineCount, column, line);    
+    memset(phit, '_', *lengthZoekWoord); // vervang woord door '_' in buffer
+  }
   
   return -1;
 }
 
-///////////////////////////////////////////////////////////////////////////////
-// prints formatted line, with ANSI escape characters for colored printing
-// output: 
-//   [line][column] string
-void printLine(int line, int column, char *string)
-{
-  printf("\033[32m[%3i][%3i] %s\033[0m", line, column, string);
-}
 
 /////////////////////////////////////////////////////////////////////////////
 // main loop
@@ -84,7 +95,7 @@ int main(int argc, char *argv[])
   }//////////////////
   
   //////////////////
-  // check if file exists
+  // print arguments
   #ifdef DEBUG
     printf("DEBUG: arg-count=%d\n", argc);
     int i, size;
@@ -101,7 +112,7 @@ int main(int argc, char *argv[])
   FILE *fp;
   fp = fopen(argv[2], "r");
  
-  if (fp == NULL) // check of file geopend is.
+  if (fp == NULL) // check if file is already opened
   {
     printf("File not opened!\n");
     return 1;
@@ -109,19 +120,16 @@ int main(int argc, char *argv[])
   
   //////////////////
   // Read every line in file and search for the word
-  int column;
-  char *zoekWoord = argv[1];
-  char lineBuffer[MAXLINE];
+  int column, sizeZoekWoord = strlen(argv[1]);
+  char lineBuffer[MAXLINE], *zoekWoord = argv[1];
   
   while(readLine(lineBuffer, MAXLINE, fp) != -1)
   {
     #ifdef DEBUG
     printf("[%3i] %s", lineCount, lineBuffer);
     #endif
-    
-    if( (column = zoek(lineBuffer, zoekWoord)) != -1)
-      printLine(lineCount, column, lineBuffer);
-  }//////////////////
+    zoek(lineBuffer, zoekWoord, &sizeZoekWoord); 
+  }
 
   //////////////////
   // close file handler and program
