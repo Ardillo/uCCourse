@@ -27,7 +27,7 @@ int lineCount = 0;
 // reads a line from file and increments counter
 // returns -1 if end of file is reached.
 int readLine(char *line, int limit, FILE *file)
-{
+{  
   if(fgets(line, limit, file) == NULL)
     return -1;
   else
@@ -115,7 +115,7 @@ int main(int argc, char *argv[])
   if (fp == NULL) // check if file is already opened
   {
     printf("File not opened!\n");
-    return 1;
+    return -1;
   }//////////////////
   
   //////////////////
@@ -134,6 +134,6 @@ int main(int argc, char *argv[])
   //////////////////
   // close file handler and program
   fclose(fp);
-  return 1;
+  return 0;
   //////////////////
 }
