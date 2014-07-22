@@ -22,7 +22,7 @@
 #define MAXLINE 200 /* maximum chars in line */
 #define NAMESIZE 30 /* maximum name size of searchString and fileName */
 
-int lineCount = 0;
+int lineCount;
 
 /////////////////////////////////////////////////////////////////////////////
 // prints description if '?' as argument is given
@@ -88,9 +88,9 @@ void printLine(int lineNumber, int column, char *string)
 // with ANSI escape characters for colored printing
 // output: 
 //   [line][column] string
-void writeLine2File(FILE *output2File, int lineNumber, int column, char *string)
+void writeLine2File(FILE *output2File, int lineNumber, int column, char *line)
 {
-  fprintf(output2File, "[%3i][%3i] %s", lineNumber, column, string);
+  fprintf(output2File, "[%3i][%3i] %s", lineNumber, column, line);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -100,6 +100,10 @@ void writeLine2File(FILE *output2File, int lineNumber, int column, char *string)
 // same line.
 int zoek(char *line, char *zoekWoord, int *output2File, FILE *output)
 {
+  #ifdef DEBUG
+  printf("[%3i] %s", lineCount, line);
+  #endif
+  
   char *phit, zoekBuffer[strlen(line)];
   int column;
   
@@ -137,7 +141,7 @@ FILE* openFile(char *fileName, char *mode)
 
 ///////////////////////////////////////////////////////////////////////////////
 // clears unwanted '\n' chars in a string and replace them with '\0'
-void clearNewLine(char *string)
+void clearNewLineSign(char *string)
 {
   int i;
   for(i=0; i< strlen(string); i++)
@@ -154,7 +158,7 @@ void askSearchString(char *searchString)
 {
   printf("Enter searchstring: ");
   fgets(searchString, NAMESIZE, stdin);
-  clearNewLine(searchString);
+  clearNewLineSign(searchString);
   
   #ifdef DEBUG
   printf("zoekWoord: %s\n", searchString);
@@ -178,7 +182,7 @@ int askFileName(char *fileName)
   //while( (i = read(stdin, buffer, sizeof(buffer))) > 0); /// geef ook ongewenst gedrag
  
   // '\n' probleem opgelost met aparte functie
-  clearNewLine(buffer);
+  clearNewLineSign(buffer);
   
   #ifdef DEBUG
   printf("OLD filename: \"%s\"\n", fileName);
@@ -215,6 +219,14 @@ int askOutput2File()
   }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+// Prints a sign in output file so different search commands 
+// are easy to find
+void writeEmptyLine(FILE *outputFile)
+{
+  fprintf(outputFile, "\n%37s\n\n", "-=@=-");
+}
+
 /////////////////////////////////////////////////////////////////////////////
 // main loop
 int main(int argc, char *argv[])
@@ -222,7 +234,6 @@ int main(int argc, char *argv[])
   int column, finished = 0, output2File;
   char lineBuffer[MAXLINE], zoekWoord[NAMESIZE], bestandsNaam[NAMESIZE] = "";
   FILE *fp = 0, *output = 0;
-  lineCount = 0;
   
   if( help(&argc, argv)) // prints help if '?' is given as argument
     return 0;
@@ -233,7 +244,9 @@ int main(int argc, char *argv[])
     output = openFile("result.txt", "w");
   
   while(!finished)
-  {    
+  { 
+    lineCount = 0; // reset counter
+
     askSearchString(zoekWoord); // ask for searchString
 
     if(zoekWoord[0] == '\0') // searchString is empty
@@ -242,21 +255,19 @@ int main(int argc, char *argv[])
       continue;
     }
 
-    if(askFileName(bestandsNaam))  
+    if(askFileName(bestandsNaam))  // ask for filename
     {
-      finished = 1;      
+      finished = 1; // if 1 is returned, user wants to quit     
       break;
     }
     
-    fp = openFile(bestandsNaam, "r");
+    fp = openFile(bestandsNaam, "r");  // open file to search in
      
-    while(readLine(lineBuffer, MAXLINE, fp) != -1)
-    {
-      #ifdef DEBUG
-      printf("[%3i] %s", lineCount, lineBuffer);
-      #endif
-      zoek(lineBuffer, zoekWoord, &output2File, output); 
-    }
+    while(readLine(lineBuffer, MAXLINE, fp) != -1) // read line
+      zoek(lineBuffer, zoekWoord, &output2File, output); // search in line
+    
+    if(output2File) // empty line in output file
+      writeEmptyLine(output);
   }
   
   if(fp != 0)
