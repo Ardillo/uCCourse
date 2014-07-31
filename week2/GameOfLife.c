@@ -24,7 +24,6 @@
 #define DEAD  '-'
 #define ALIVE '#'
 
-int counter;
 char matrix[(HEIGHT+2)][(WIDTH+2)];
 char tempBuf[(HEIGHT+2)][(WIDTH+2)];
 
@@ -264,7 +263,7 @@ void put_starting_data_in_matrix()
 // main loop
 int main(int argc, char *argv[])
 {
-  counter = 0;
+  int counter = 0;
   
   help(&argc, argv);
   
