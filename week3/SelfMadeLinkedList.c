@@ -12,8 +12,8 @@
 #define BUFFER_SIZE 80 /* een macht van 2 */
 //#define DEBUG
 
-///!//////////////////////////////////////////////////////////////////////////
-/// struct with linked neighbour
+/////////////////////////////////////////////////////////////////////////////
+// struct with linked neighbour
 typedef struct node
 {
   char          name[BUFFER_SIZE];
@@ -21,8 +21,8 @@ typedef struct node
   struct node   *next;
 } NODE, *PNODE;
 
-///!///////////////////////////////////////////////////////////////////////////
-/// Global vars
+//////////////////////////////////////////////////////////////////////////////
+// Global vars
 PNODE top     = NULL;
 int nodeCount = 0;
 
@@ -225,13 +225,16 @@ void menu()
   {
     puts("a=add d=del e=edit x=exit s=show_all ?=help [s]");
     
-    // lelijke fix, linux heeft geen getch() ... werkt niet 
-    // u != 13 --> 13 = ASCII enter
-    //while((u=getchar())!='\n' && u != EOF && u != 13) 
+    
+    // lelijke fix, linux heeft geen getch(), en getc() heeft hetzelfde buffer 
+    // probleem. de buffer wordt pas uitgelezen na ENTER toets, bij een volgend
+    // menu worden de overgebleven chars uit de buffer gebruikt.
+    // onderstaand werkt niet
+    //while((u=getchar())!='\n' && u != EOF && u != 13) // --> 13 = ASCII enter
     
     // nog veel lelijker, maar u[0] is de char waar het om gaat... zucht
     fgets(u, 3, stdin);
-    
+   
     #ifdef DEBUG
     int i;
     for(i=0; i<strlen(u); i++)
