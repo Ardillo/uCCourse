@@ -10,6 +10,7 @@
 #include <string.h> /* strcpy */
 
 #define BUFFER_SIZE 80 /* programma eis */
+#define MAXLINE 100    /* maximum chars in one line (of file) */
 //#define DEBUG
 
 /////////////////////////////////////////////////////////////////////////////
@@ -213,12 +214,73 @@ void edit_node(PNODE current)
   return;
 }
 
+/// OPTIONAL
+//////////////////////////////////////////////////////////////////////////////
+// writes the linkedlist as a comma-seperated-value to a file
+// argument: pointer to top-node, locally called current
+void write_to_file(PNODE current)
+{
+  FILE *pfile;
+  pfile = fopen("output.txt" ,"w");
+  if(pfile != NULL)
+  {    
+    for(current; current != NULL; current=current->next)
+      fprintf(pfile, "%s,%i\n", current->name, current->nr);
+    
+    fclose(pfile);
+    return;
+  }
+  puts("Write to file not possible");
+  return;
+}
+
+//////////////////////////////////////////////////////////////////////////////
+// reads an csv file of the format:
+// <name>,<nr> 
+// <name>,<nr>
+// <name>,<nr>
+// and makes a linkedlist out of it
+void read_from_file()
+{
+  char fileName[BUFFER_SIZE], lineBuffer[MAXLINE], *pWords;
+  int number;
+  FILE *pfile;
+  
+  printf("Geef csv bestand: ");
+  fgets(fileName, BUFFER_SIZE, stdin);
+  formatString(fileName);
+  
+  pfile = fopen(fileName, "r");
+  if(pfile != NULL)
+  {
+    while(fgets(lineBuffer, MAXLINE, pfile))
+    {
+      PNODE newNode = (PNODE)malloc(sizeof(NODE));
+      #ifdef DEBUG
+      printf(lineBuffer);
+      #endif
+      pWords = strtok(lineBuffer, ",");
+      strcpy(newNode->name, pWords); //TODO hier ben ik gebleven
+      printf("%s\n", pWords);
+      pWords = strtok(NULL, "\n");
+      printf("%s\n", pWords);
+
+      //while(pWords)
+    }
+   
+    return;
+  }
+  puts("could not open file");
+  return;
+}
+
 void menu()
 {
   char u[BUFFER_SIZE];
   while(1)
   {
-    puts("a=add d=del e=edit x=exit s=show_all ?=help");
+    puts("a=add d=del e=edit w=write_to_file r=read_from_file x=exit"
+         "s=show_all ?=help");
     
     
     // lelijke fix, linux heeft geen getch(), en getc() heeft hetzelfde buffer 
@@ -250,6 +312,12 @@ void menu()
           break;
         case 's':
           show_nodes(top);
+          break;
+        case 'w':
+          write_to_file(top);
+          break;
+        case 'r':
+          read_from_file();
           break;
         case 'x':
           free_nodes();
