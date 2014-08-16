@@ -1,5 +1,5 @@
 /* ========================================================================== */
-/*   voorbeeld.c                                                              */
+/*   SelfMadeLinkedList.c                                                     */
 /*                                                                            */
 /* Aangepast door: Jeroen van Prooijen                                        */
 /* stud.nr:        1595111                                                    */
@@ -9,7 +9,7 @@
 #include <stdio.h>  /* printf */
 #include <string.h> /* strcpy */
 
-#define BUFFER_SIZE 80 /* een macht van 2 */
+#define BUFFER_SIZE 80 /* programma eis */
 //#define DEBUG
 
 /////////////////////////////////////////////////////////////////////////////
@@ -40,8 +40,8 @@ void usage()
        "|   Program shows the usage of linked lists. A user  |\n"
        "|   can add, edit and delete nodes which are linked  |\n"
        "|   together automatically.                          |\n"
-       "|   There's also an option to print the              |\n"
-       "|   whole list on the screen.                        |\n"
+       "|   There's also an option to print the whole list   |\n"
+       "|   on the screen.                                   |\n"
        "|                                                    |\n"
        "======================================================\n");
 }
@@ -88,7 +88,7 @@ void show_nodes(PNODE current)
     
     current = current->next;
   }
-  puts(    "  ========NULL=======");
+  puts(    "  ========NULL=======\n");
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -220,10 +220,10 @@ void edit_node(PNODE current)
 
 void menu()
 {
-  char u[3];
+  char u[BUFFER_SIZE];
   while(1)
   {
-    puts("a=add d=del e=edit x=exit s=show_all ?=help [s]");
+    puts("a=add d=del e=edit x=exit s=show_all ?=help");
     
     
     // lelijke fix, linux heeft geen getch(), en getc() heeft hetzelfde buffer 
@@ -233,8 +233,9 @@ void menu()
     //while((u=getchar())!='\n' && u != EOF && u != 13) // --> 13 = ASCII enter
     
     // nog veel lelijker, maar u[0] is de char waar het om gaat... zucht
-    fgets(u, 3, stdin);
-   
+    fgets(u, BUFFER_SIZE, stdin);
+    // u = |char|'13'|'\0'|
+    
     #ifdef DEBUG
     int i;
     for(i=0; i<strlen(u); i++)
@@ -263,7 +264,7 @@ void menu()
           usage();
           break;
         default :
-          show_nodes(top);
+          puts("no valid input, try again");
           break;
       }
   }
@@ -273,7 +274,7 @@ void menu()
 
 //////////////////////////////////////////////////////////////////////////////
 // main() loop
-int main(int argc, char *argv[])
+int main(void)
 {
   menu();
   return 0;
