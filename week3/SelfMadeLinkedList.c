@@ -9,9 +9,8 @@
 #include <stdio.h>  /* printf */
 #include <string.h> /* strcpy */
 
-#define BUFFER_SIZE 32 /* een macht van 2 */
-#define DEBUG
-
+#define BUFFER_SIZE 80 /* een macht van 2 */
+//#define DEBUG
 
 ///!//////////////////////////////////////////////////////////////////////////
 /// struct with linked neighbour
@@ -26,6 +25,26 @@ typedef struct node
 /// Global vars
 PNODE top     = NULL;
 int nodeCount = 0;
+
+//////////////////////////////////////////////////////////////////////////////
+// print information about the program
+void usage()
+{
+  puts("\n"
+       "======================================================\n"
+       "|                                                    |\n"
+       "| SelfMadeLinkedList v1.0                            |\n"
+       "|   author: Jeroen van Prooijen                      |\n"
+       "|                                                    |\n"            
+       "| Description:                                       |\n"
+       "|   Program shows the usage of linked lists. A user  |\n"
+       "|   can add, edit and delete nodes which are linked  |\n"
+       "|   together automatically.                          |\n"
+       "|   There's also an option to print the              |\n"
+       "|   whole list on the screen.                        |\n"
+       "|                                                    |\n"
+       "======================================================\n");
+}
 
 //////////////////////////////////////////////////////////////////////////////
 // free all entry's of linkedlist
@@ -97,17 +116,17 @@ void add_node(void)
   //fgets(number, BUFFER_SIZE, stdin);
   //newNode->nr = atoi(number);
   
-  /// format name 
+  // format name 
   formatString(newNode->name);
   
-  /// format number
+  // format number
   newNode->nr = ++nodeCount;
   
-  /// format pointer 
+  // format pointer 
   if(top!=NULL)
     newNode->next = top;
   
-  /// set global vars
+  // set global vars
   top = newNode;
 }
 
@@ -125,21 +144,7 @@ int nodes_exist()
   
   return 1;
 }
-
-PNODE find_node()
-{
-  if(!nodes_exist())
-    return NULL;
-
-  // if top-node is the one to be found
-  if(strcmp(current->name, searchName) == 0)
-  {
-    top = current->next;
-    free(current);
-    return;
-  }
-  
-
+ 
 //////////////////////////////////////////////////////////////////////////////
 // deletes node from linkedlist,
 // argument: pointer to top-node, locally called current
@@ -172,6 +177,9 @@ void del_node(PNODE current)
     }
 }
   
+//////////////////////////////////////////////////////////////////////////////
+// finds node and asks what to change
+// argument: pointer to top-node, locally called current
 void edit_node(PNODE current)
 {
   if(!nodes_exist())
@@ -183,16 +191,42 @@ void edit_node(PNODE current)
   fgets(searchName, BUFFER_SIZE, stdin);
   formatString(searchName);
   
-//////////////////////////////////////////////////////////////////////////////
-// main() loop
-int main(int argc, char *argv[])
+  for(current; current != NULL; current=current->next) 
+    if(strcmp(current->name, searchName) == 0)
+    {     
+     char u[3], number[BUFFER_SIZE];
+     
+     puts("Wat moet er veranderd worden? n=name #=nr [n]");
+     fgets(u, 3 ,stdin);
+     
+     switch((int)u[0])
+     {
+       case '#':         
+         printf("Geef een nieuw nummer: ");
+         fgets(number, BUFFER_SIZE, stdin);
+         current->nr = atoi(number);
+         return;
+       default :
+         printf("Geef een nieuwe naam: ");
+         fgets(current->name, BUFFER_SIZE, stdin);
+         formatString(current->name);
+         return;
+     }
+    }
+  
+  puts("node not found, typo?");
+  return;
+}
+
+void menu()
 {
   char u[3];
   while(1)
   {
-    puts("a=add d=del x=exit s=show_all");
-
-    // lelijke fix, linux heeft geen getch() ... werkt niet -> 13 = ASCII enter
+    puts("a=add d=del e=edit x=exit s=show_all ?=help [s]");
+    
+    // lelijke fix, linux heeft geen getch() ... werkt niet 
+    // u != 13 --> 13 = ASCII enter
     //while((u=getchar())!='\n' && u != EOF && u != 13) 
     
     // nog veel lelijker, maar u[0] is de char waar het om gaat... zucht
@@ -212,6 +246,9 @@ int main(int argc, char *argv[])
         case 'd':
           del_node(top);
           break;
+        case 'e':
+          edit_node(top);
+          break;
         case 's':
           show_nodes(top);
           break;
@@ -219,18 +256,22 @@ int main(int argc, char *argv[])
           free_nodes();
           puts("exiting ...");
           return;
+        case '?':
+          usage();
+          break;
+        default :
+          show_nodes(top);
+          break;
       }
   }
+  return;
+}
   
-  /*
-  PNODE een = (PNODE)malloc(sizeof(NODE));
-  PNODE twee = (PNODE)malloc(sizeof(NODE));
-  PNODE drie = (PNODE)malloc(sizeof(NODE));
-  
-  twee->next = een;
-  drie->next = twee;
-  top = drie;
-  */
-  
+
+//////////////////////////////////////////////////////////////////////////////
+// main() loop
+int main(int argc, char *argv[])
+{
+  menu();
   return 0;
 }
