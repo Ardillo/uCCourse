@@ -135,14 +135,7 @@ void add_node(void)
 // returns; 1 if true, 0 if none
 int nodes_exist()
 {
-  // if there are no nodes
-  if(top == NULL)
-  { 
-    puts("there are no nodes!"); 
-    return 0;
-  }
-  
-  return 1;
+  return (top == NULL)? 0 : 1;
 }
  
 //////////////////////////////////////////////////////////////////////////////
@@ -151,6 +144,7 @@ int nodes_exist()
 void del_node(PNODE current)
 {
   if(!nodes_exist())
+    puts("there are no nodes!");
     return;
  
   char searchName[BUFFER_SIZE];
@@ -183,6 +177,7 @@ void del_node(PNODE current)
 void edit_node(PNODE current)
 {
   if(!nodes_exist())
+    puts("there are no nodes!");
     return;
   
   char searchName[BUFFER_SIZE];
@@ -274,7 +269,7 @@ void menu()
 
 //////////////////////////////////////////////////////////////////////////////
 // main() loop
-int main(void)
+int main(int argc, char *argv[])
 {
   menu();
   return 0;
