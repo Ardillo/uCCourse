@@ -11,7 +11,8 @@
 
 #define BUFFER_SIZE 80 /* programma eis */
 #define MAXLINE 100    /* maximum chars in one line (of file) */
-//#define DEBUG
+
+#define DEBUG
 
 /////////////////////////////////////////////////////////////////////////////
 // struct with linked neighbour
@@ -24,8 +25,9 @@ typedef struct node
 
 //////////////////////////////////////////////////////////////////////////////
 // Global vars
-PNODE top     = NULL;
-int nodeCount = 0;
+PNODE top      = NULL;
+PNODE last_add = NULL;
+int nodeCount  = 0;
 
 //////////////////////////////////////////////////////////////////////////////
 // print information about the program
@@ -123,12 +125,16 @@ void add_node(void)
   // format number
   newNode->nr = ++nodeCount;
   
-  // format pointer 
-  if(top!=NULL)
-    newNode->next = top;
+  //format next, otherwise unpredictable input
+  newNode->next = NULL;
   
-  // set global vars
-  top = newNode;
+  if(top==NULL)
+    top = newNode;
+  
+  if(last_add!=NULL)
+    last_add->next = newNode;
+  
+  last_add = newNode;
 }
 
 //////////////////////////////////////////////////////////////////////////////
@@ -145,14 +151,18 @@ int nodes_exist()
 void del_node(PNODE current)
 {
   if(!nodes_exist())
+  {
     puts("there are no nodes!");
     return;
+  }
  
   char searchName[BUFFER_SIZE];
   
   printf("Welke node wil je verwijderen [naam]: ");
   fgets(searchName, BUFFER_SIZE, stdin);
   formatString(searchName);
+  
+  nodeCount--;
   
   // if top-node is the to-be-deleted node
   if(strcmp(current->name, searchName) == 0)
@@ -166,10 +176,12 @@ void del_node(PNODE current)
   for(current; current != NULL; current=current->next) 
     if(current->next && strcmp(current->next->name, searchName) == 0)
     {
+      if(current->next == last_add)
+        last_add = current;
       PNODE to_be_deleted = current->next;
       current->next = to_be_deleted->next;
       free(to_be_deleted);
-    }
+    }  
 }
   
 //////////////////////////////////////////////////////////////////////////////
@@ -214,7 +226,6 @@ void edit_node(PNODE current)
   return;
 }
 
-/// OPTIONAL
 //////////////////////////////////////////////////////////////////////////////
 // writes the linkedlist as a comma-seperated-value to a file
 // argument: pointer to top-node, locally called current
@@ -253,25 +264,51 @@ void read_from_file()
   pfile = fopen(fileName, "r");
   if(pfile != NULL)
   {
+    // file is found, delete current linkedlist, top is set to NULL
+    free_nodes();
+    last_add = NULL;
+    nodeCount = 0;
+    
     while(fgets(lineBuffer, MAXLINE, pfile))
     {
       PNODE newNode = (PNODE)malloc(sizeof(NODE));
       #ifdef DEBUG
       printf(lineBuffer);
       #endif
+      
       pWords = strtok(lineBuffer, ",");
-      strcpy(newNode->name, pWords); //TODO hier ben ik gebleven
-      printf("%s\n", pWords);
+      strcpy(newNode->name, pWords); 
+      
       pWords = strtok(NULL, "\n");
-      printf("%s\n", pWords);
-
-      //while(pWords)
-    }
-   
+      newNode->nr = atoi(pWords);
+      
+      if(top == NULL)
+        top = newNode;
+      
+      if(last_add != NULL)
+        last_add->next = newNode;
+      
+      last_add = newNode;
+      
+      nodeCount++;
+      
+      #ifdef DEBUG
+      printf("name: %9s -> nr: %4i\n", newNode->name, newNode->nr);           
+      #endif      
+    }   
     return;
   }
   puts("could not open file");
   return;
+}
+
+void print_info()
+{
+  puts("\n==========================");
+  printf("PNODE      top : %9p\n", top);
+  printf("PNODE last_add : %9p\n", last_add);
+  printf("int   nodeCount: %9i\n", nodeCount);
+  puts("==========================\n");
 }
 
 void menu()
@@ -279,7 +316,7 @@ void menu()
   char u[BUFFER_SIZE];
   while(1)
   {
-    puts("a=add d=del e=edit w=write_to_file r=read_from_file x=exit"
+    puts("a=add d=del e=edit w=write_to_file r=read_from_file x=exit "
          "s=show_all ?=help");
     
     
@@ -323,6 +360,9 @@ void menu()
           free_nodes();
           puts("exiting ...");
           return;
+        case 'i':       // hidden option for debugging purpose
+          print_info(); // TODO
+          break;
         case '?':
           usage();
           break;
