@@ -45,6 +45,9 @@ void usage()
        "|   together automatically.                          |\n"
        "|   There's also an option to print the whole list   |\n"
        "|   on the screen.                                   |\n"
+       "|   You can also export the list to a file named     |\n"
+       "|   'output.txt', this file can be inported the next |\n"
+       "|   time a user wants to restore is session.         |\n"
        "|                                                    |\n"
        "======================================================\n");
 }
@@ -57,6 +60,7 @@ void free_nodes()
   puts("\nfree-ing memory:");
   #endif
   PNODE current;
+  // place the pointer of the next node in 'top' and frees the current node
   while(top)
   {
     current = top; 
@@ -115,25 +119,24 @@ void add_node(void)
   printf("Geef een naam voor de node  : ");
   fgets(newNode->name, BUFFER_SIZE, stdin);
   
-  //printf("Geef een nummer voor de node: ");
-  //fgets(number, BUFFER_SIZE, stdin);
-  //newNode->nr = atoi(number);
-  
   // format name 
   formatString(newNode->name);
   
   // format number
   newNode->nr = ++nodeCount;
   
-  //format next, otherwise unpredictable input
+  // format next, otherwise unpredictable input
   newNode->next = NULL;
   
+  // if first of list
   if(top==NULL)
     top = newNode;
   
+  // add the address of the just created node to the previous last added node
   if(last_add!=NULL)
     last_add->next = newNode;
   
+  // make this the last added node
   last_add = newNode;
 }
 
@@ -164,7 +167,8 @@ void del_node(PNODE current)
   
   nodeCount--;
   
-  // if top-node is the to-be-deleted node
+  // if top-node is the to-be-deleted node, shift the top-node-ptr to the next
+  // coming in the list and free the top-node
   if(strcmp(current->name, searchName) == 0)
   {
     top = current->next;
@@ -246,11 +250,11 @@ void write_to_file(PNODE current)
 }
 
 //////////////////////////////////////////////////////////////////////////////
-// reads an csv file of the format:
+// reads an csv file and makes a linkedlist out of it.
+//////// format:
 // <name>,<nr> 
 // <name>,<nr>
 // <name>,<nr>
-// and makes a linkedlist out of it
 void read_from_file()
 {
   char fileName[BUFFER_SIZE], lineBuffer[MAXLINE], *pWords;
@@ -361,7 +365,7 @@ void menu()
           puts("exiting ...");
           return;
         case 'i':       // hidden option for debugging purpose
-          print_info(); // TODO
+          print_info(); 
           break;
         case '?':
           usage();
