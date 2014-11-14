@@ -229,6 +229,10 @@ int lookup(char character)
       return 201;
     case '=':
       return KEY_EQUAL;
+    case '\\':
+      return KEY_BACKSLASH;
+    case '/':
+      return KEY_SLASH;
     default :
       return -1;    
   }
